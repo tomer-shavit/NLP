@@ -2,6 +2,57 @@
 __pycache__/
 *.py[cod]
 *$py.class
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# PyCharm project files
+.idea/
+
+# Virtual environments
+venv/
+env/
+*.env
+*.venv
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+*.sql
+
+# Python package files
+*.egg
+*.egg-info/
+dist/
+build/
+*.wheel
+
+# Test coverage reports
+.coverage
+*.coverage
+*.cover
+*.gcno
+
+# Cache files
+.cache/
+*.mypy_cache/
+.pytest_cache/
+
+# Environment files
+*.env
+*.env.*
+.envrc
+.DS_Store
+
+# OS-specific files
+Thumbs.db
+.DS_Store
+desktop.ini
 
 # C extensions
 *.so
