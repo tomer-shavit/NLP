@@ -70,8 +70,8 @@ def MLP_classification(portion=1., model=None):
                                                                                            dtype=torch.long).to(device)
     x_val, y_val = torch.tensor(x_val, dtype=torch.float32).to(device), torch.tensor(y_val, dtype=torch.long).to(device)
 
-    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=32, shuffle=True)
-    val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=32)
+    train_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=16, shuffle=True)
+    val_loader = DataLoader(TensorDataset(x_val, y_val), batch_size=16)
 
     model = model.to(device)
 
@@ -79,7 +79,7 @@ def MLP_classification(portion=1., model=None):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     train_losses, val_accuracies = [], []
-    epochs = 10
+    epochs = 20
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -181,7 +181,7 @@ def plot_metrics(portion, train_losses, val_accuracies, model_type):
     print(f"Plot saved as {file_name}")
 
 # Q3
-def transformer_classification(portion=1.):
+def transformer_classification(portion=1., get_model=False):
     import torch
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
     from torch.utils.data import DataLoader
@@ -292,6 +292,9 @@ def transformer_classification(portion=1.):
 
     # Model, tokenizer, and metric
     model = AutoModelForSequenceClassification.from_pretrained('distilroberta-base', num_labels=num_labels).to(dev)
+    if get_model:
+        return model
+    
     tokenizer = AutoTokenizer.from_pretrained('distilroberta-base')
     metric = evaluate.load("accuracy")
 
@@ -317,6 +320,9 @@ def transformer_classification(portion=1.):
 
     plot_transformer_metrics(portion, train_losses, val_accuracies)
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 
 if __name__ == "__main__":
     portions = [0.1, 0.2, 0.5, 1.]
@@ -335,7 +341,16 @@ if __name__ == "__main__":
     #     plot_metrics(portion, train_losses, val_accuracies, model_type="MLP")
 
     # Q3 - Transformer
-    print("\nTransformer results:")
-    for p in portions[:2]:
-        print(f"Portion: {p}")
-        transformer_classification(portion=p)
+    # print("\nTransformer results:")
+    # for p in portions[:2]:
+    #     print(f"Portion: {p}")
+    #     transformer_classification(portion=p)
+
+    # Q4(C) - Parameter number
+    log_linear_params = count_parameters(build_linear_model(input_dim=2000, output_dim=len(category_dict)))
+    mlp_params = count_parameters(build_mlp_model(input_dim=2000, hidden_dim=500, output_dim=len(category_dict)))
+    transformer_params = count_parameters(transformer_classification(get_model=True))
+
+    print(f"Log-linear model trainable parameters: {log_linear_params}")
+    print(f"MLP model trainable parameters: {mlp_params}")
+    print(f"Transformer model trainable parameters: {transformer_params}")
