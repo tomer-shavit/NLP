@@ -1,0 +1,53 @@
+=== Most Likely Tag Baseline Results ===
+Error Rate for Known Words: 0.0832
+Error Rate for Unknown Words: 0.7897
+Total Error Rate: 0.1639
+
+=== HMM Results ===
+Error Rate for Known Words: 0.0479
+Error Rate for Unknown Words: 0.7190
+Total Error Rate: 0.1246
+
+=== Add-One Smoothing Results ===
+Error Rate for Known Words: 0.1788
+Error Rate for Unknown Words: 0.7522
+Total Error Rate: 0.2443
+
+=== Pseudo-Words with MLE Results ===
+Error Rate for Known Words: 0.1858
+Error Rate for Unknown Words: None
+Total Error Rate: 0.1858
+
+=== Pseudo-Words with Add-One Smoothing Results ===
+Error Rate for Known Words: 0.1903
+Error Rate for Unknown Words: None
+Total Error Rate: 0.1903
+
+=== Confusion Matrix ===
+         '  ''   (  (-HL   )  )-HL  *  *-HL  ,  ,-HL  ...  VBZ-HL  WDT  \
+'        5   0   0     0   0     0  0     0  0     0  ...       0    0
+''       0  50   0     0   0     0  0     0  0     0  ...       0    0
+(        0   0  17     0   0     0  0     0  0     0  ...       0    0
+(-HL     0   0   0     0   0     0  0     0  0     0  ...       0    0
+)        0   0   0     0  13     0  0     0  3     0  ...       0    0
+...     ..  ..  ..   ...  ..   ... ..   ... ..   ...  ...     ...  ...
+WPS      0   0   0     0   0     0  0     0  0     0  ...       0    0
+WPS+BEZ  0   0   0     0   0     0  0     0  0     0  ...       0    0
+WQL      0   0   0     0   0     0  0     0  0     0  ...       0    0
+WRB      0   0   0     0   0     0  0     0  0     0  ...       0    0
+``       0   0   0     0   0     0  0     0  0     0  ...       0    0
+
+         WDT+BEZ  WP$  WPO  WPS  WPS+BEZ  WQL  WRB  ``
+'              0    0    0    0        0    0    0   0
+''             0    0    0    0        0    0    0   0
+(              0    0    0    0        0    0    0   0
+(-HL           0    0    0    0        0    0    0   0
+)              0    0    0    0        0    0    0   0
+...          ...  ...  ...  ...      ...  ...  ...  ..
+WPS            0    0    0   37        0    0    0   0
+WPS+BEZ        0    0    0    0        0    0    0   0
+WQL            0    0    0    0        0    0    0   0
+WRB            0    0    0    0        0    0   27   0
+``             0    0    0    0        0    0    0  58
+
+[219 rows x 219 columns]
