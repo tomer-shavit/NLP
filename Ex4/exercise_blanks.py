@@ -118,8 +118,16 @@ def get_w2v_average(sent, word_to_vec, embedding_dim):
     :param embedding_dim: the dimension of the word embedding vectors
     :return The average embedding vector as numpy ndarray.
     """
-    return
-
+    words = sent.text
+    emb_sum = np.zeros(embedding_dim, dtype=np.float32)
+    count = 0
+    for w in words:
+        if w in word_to_vec:
+            emb_sum += word_to_vec[w]
+            count += 1
+    if count == 0:
+        return emb_sum  # all unknown words, return zeros
+    return emb_sum / count
 
 def get_one_hot(size, ind):
     """
@@ -440,8 +448,20 @@ def train_log_linear_with_w2v():
     Here comes your code for training and evaluation of the log linear model with word embeddings
     representation.
     """
-    return
+    dm = DataManager(data_type=W2V_AVERAGE, use_sub_phrases=True, batch_size=64, embedding_dim=300)
+    model = LogLinear(dm.get_input_shape()[0])
+    train_losses, train_accs, val_losses, val_accs = train_model(model, dm, 20, 0.01, 0.001)
+    plot_train_val(train_losses, val_losses, train_accs, val_accs)
 
+    criterion = nn.BCEWithLogitsLoss()
+    test_loss, test_acc = evaluate(model, dm.get_torch_iterator(TEST), criterion)
+    print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.2%}")
+
+    negated_indices = get_negated_polarity_examples(dm.sentences[TEST])
+    rare_indices = get_rare_words_examples(dm.sentences[TEST], dm.sentiment_dataset)
+    neg_loss, neg_acc = evaluate_subset_accuracy(model, dm.torch_datasets[TEST], negated_indices)
+    rare_loss, rare_acc = evaluate_subset_accuracy(model, dm.torch_datasets[TEST], rare_indices)
+    print(f"Negated Polarity Accuracy: {neg_acc:.2%}, Rare Words Accuracy: {rare_acc:.2%}")
 
 def train_lstm_with_w2v():
     """
@@ -481,6 +501,6 @@ def evaluate_subset_accuracy(model, dataset, indices):
     return loss, acc
 
 if __name__ == '__main__':
-    train_log_linear_with_one_hot()
-    # train_log_linear_with_w2v()
+    # train_log_linear_with_one_hot()
+    train_log_linear_with_w2v()
     # train_lstm_with_w2v()
