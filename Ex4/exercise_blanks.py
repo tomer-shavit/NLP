@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset, Dataset
 import operator
 import data_loader
 import pickle
-import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch.utils.data import Subset
 from data_loader import get_negated_polarity_examples, get_rare_words_examples
@@ -177,7 +177,20 @@ def sentence_to_embedding(sent, word_to_vec, seq_len, embedding_dim=300):
     :param embedding_dim: the dimension of the w2v embedding
     :return: numpy ndarray of shape (seq_len, embedding_dim) with the representation of the sentence
     """
-    return
+    # Initialize empty array with zeros
+    embeddings = np.zeros((seq_len, embedding_dim), dtype=np.float32)
+    
+    # Fill in the embeddings for words that exist in word_to_vec
+    for i, word in enumerate(sent.text):
+        if i >= seq_len:  # Don't exceed sequence length
+            break
+        if word in word_to_vec:
+            embeddings.append(word_to_vec[word])
+    if len(embeddings) < seq_len:
+        embeddings.extend([np.zeros(embedding_dim)] * (seq_len - len(embeddings)))
+    elif len(embeddings) > seq_len:
+        embeddings = embeddings[:seq_len]
+    return np.array(embeddings)
 
 
 class OnlineDataset(Dataset):
@@ -291,13 +304,25 @@ class LSTM(nn.Module):
     An LSTM for sentiment analysis with architecture as described in the exercise description.
     """
     def __init__(self, embedding_dim, hidden_dim, n_layers, dropout):
-        return
-
+        super().__init__()
+        self.input_size = embedding_dim
+        self.lstm = nn.LSTM(input_size=embedding_dim, 
+                           hidden_size=hidden_dim, 
+                           num_layers=n_layers, 
+                           dropout=dropout, 
+                           bidirectional=True,
+                           batch_first=True)
+        self.fc = nn.Linear(hidden_dim * 2, 1)
+        
     def forward(self, text):
-        return
+        lstm_out, (hidden, cell) = self.lstm(text)
+        hidden = torch.cat((hidden[-2,:,:], hidden[-1,:,:]), dim=1)
+        return self.fc(hidden)
 
     def predict(self, text):
-        return
+        with torch.no_grad():
+            output = self.forward(text)
+            return torch.sigmoid(output).squeeze()
 
 
 class LogLinear(nn.Module):
@@ -415,7 +440,7 @@ def train_model(model, data_manager, n_epochs, lr, weight_decay=0.):
     train_iter = data_manager.get_torch_iterator(TRAIN)
     val_iter = data_manager.get_torch_iterator(VAL)
     train_losses, train_accs, val_losses, val_accs = [], [], [], []
-    for _ in range(n_epochs):
+    for _ in tqdm(range(n_epochs)):
         tr_loss, tr_acc = train_epoch(model, train_iter, optimizer, criterion)
         v_loss, v_acc = evaluate(model, val_iter, criterion)
         train_losses.append(tr_loss)
@@ -467,7 +492,20 @@ def train_lstm_with_w2v():
     """
     Here comes your code for training and evaluation of the LSTM model.
     """
-    return
+    dm = DataManager(data_type=W2V_SEQUENCE, batch_size=64, embedding_dim=300)
+    model = LSTM(dm.get_input_shape()[1], 100, 1, 0.5)
+    train_losses, train_accs, val_losses, val_accs = train_model(model, dm, 4, 0.01, 0.001)
+    plot_train_val(train_losses, val_losses, train_accs, val_accs)
+
+    criterion = nn.BCEWithLogitsLoss()
+    test_loss, test_acc = evaluate(model, dm.get_torch_iterator(TEST), criterion)
+    print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.2%}")
+
+    negated_indices = get_negated_polarity_examples(dm.sentences[TEST])
+    rare_indices = get_rare_words_examples(dm.sentences[TEST], dm.sentiment_dataset)
+    neg_loss, neg_acc = evaluate_subset_accuracy(model, dm.torch_datasets[TEST], negated_indices)
+    rare_loss, rare_acc = evaluate_subset_accuracy(model, dm.torch_datasets[TEST], rare_indices)
+    print(f"Negated Polarity Accuracy: {neg_acc:.2%}, Rare Words Accuracy: {rare_acc:.2%}")
 
 
 def plot_train_val(train_losses, val_losses, train_accs, val_accs):
@@ -501,6 +539,6 @@ def evaluate_subset_accuracy(model, dataset, indices):
     return loss, acc
 
 if __name__ == '__main__':
-    # train_log_linear_with_one_hot()
+    train_log_linear_with_one_hot()
     train_log_linear_with_w2v()
-    # train_lstm_with_w2v()
+    train_lstm_with_w2v()
